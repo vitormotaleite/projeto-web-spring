@@ -5,13 +5,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.vitor.spring.entities.User;
 import com.vitor.spring.repositories.UserRepository;
 import com.vitor.spring.services.exceptions.DatabaseException;
 import com.vitor.spring.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -44,9 +45,13 @@ public class UserService {
     }
 
     public User update(Long id, User obj) {
-        User entity = userRepository.getReferenceById(id);
-        updateData(entity, obj);
-        return userRepository.save(entity);
+        try {
+            User entity = userRepository.getReferenceById(id);
+            updateData(entity, obj);
+            return userRepository.save(entity);
+        } catch (EntityNotFoundException e) {
+            throw new ResourceNotFoundException(id);
+        }
     }
 
     private void updateData(User entity, User obj) {
